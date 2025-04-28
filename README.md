@@ -1,152 +1,184 @@
-# RL Swarm
+# RL Swarm: Руководство на русском
 
-RL Swarm is an open source system for peer-to-peer reinforcement learning over the internet. Running a swarm node allows you to train your personal model against the swarm intelligence. Each swarm performs RL reasoning as a group, with a gossiping system (Hivemind) for collaborative improvement between models. You can also connect your node to the Gensyn Testnet, to receive an on-chain identity that tracks your progress over time.
+RL Swarm — это открытая система для распределённого обучения с подкреплением (RL) через интернет. Запуск узла Swarm позволяет тренировать вашу модель против коллективного интеллекта роя. Каждый рой выполняет RL-рассуждения как группа, используя систему обмена данными (Hivemind) для совместного улучшения моделей. Вы также можете подключить узел к тестовой сети Gensyn, чтобы получить ончейн-идентификатор для отслеживания прогресса.
 
-RL Swarm is fully open and permissionless, meaning you can run it on a basic consumer laptop at home or on a powerful GPU in the cloud. You can also experiment with different models to see which ones perform best.
+RL Swarm полностью открыта и не требует разрешений. Вы можете запустить её на обычном ноутбуке или на мощном GPU в облаке. Также можно экспериментировать с разными моделями, чтобы найти лучшую.
 
-## Requirements
+## Требования
 
-Ensure that you are using a supported machine/device/environment:
+Убедитесь, что ваше устройство соответствует требованиям:
 
-- arm64 or x86 CPU with minimum 16gb ram (note that if you run other applications during training it might crash training).
+- **Процессор**: arm64 или x86 с минимум 16 ГБ оперативной памяти (учтите, что запуск других приложений во время обучения может вызвать сбой).
+  
+ИЛИ
 
-OR
+- **CUDA-устройства** (официально поддерживаемые):
+  - RTX 3090
+  - RTX 4070
+  - RTX 4090
+  - A100
+  - H100
 
-- CUDA devices (officially supported):
-    - RTX 3090
-    - RTX 4070
-    - RTX 4090
-    - A100
-    - H100
+И
 
-WITH
+- **Python**: версия >= 3.10 (на Mac, возможно, потребуется обновление).
 
--  Python >=3.10 (for Mac, you will likely need to upgrade)
+## ⚠️ Важно прочитать перед началом ⚠️
 
-## ⚠️ Please read before continuing ⚠️
+Это **экспериментальное** ПО, предоставляемое "как есть" для пользователей, интересующихся ранней версией протокола Gensyn для тренировки моделей.
 
-This software is **experimental** and provided as-is for users who are interested in using (or helping to develop) an early version of the Gensyn Protocol for training models.
+Если вам важна ончейн-регистрация, обязательно изучите раздел [Управление идентичностью](#управление-идентичностью).
 
-If you care a lot about on-chain participation, you **must** read the [Identity Management](#identity-management) section below.
+При возникновении проблем сначала проверьте раздел [Устранение неисправностей](#устранение-неисправностей). Если решения нет, проверьте открытые или закрытые [Issues](../../issues) на GitHub. Если проблема не описана, создайте новый Issue, указав: 1) все логи, 2) информацию об устройстве (например, GPU), 3) данные об операционной системе.
 
-If you encounter issues, please first check [Troubleshooting](#troubleshooting). If you cannot find a solution there, please check if there is an open (or closed) [Issue](../../issues). If there is no relevant issue, please file one and include 1) all relevant logs, 2) information about your device (e.g. which GPU, if relevant), and 3) your operating system information.
+## Инструкции
 
-## Instructions
+### Установка и запуск узла
 
-### Run the swarm
+1. Обновите систему и установите необходимые пакеты:
+   ```sh
+   apt update && apt install -y sudo
+   sudo apt update && sudo apt upgrade -y
+   sudo apt install -y curl wget git build-essential python3 python3-pip python3-venv screen
+   ```
 
-```sh
-python3 -m venv .venv
-source .venv/bin/activate
-./run_rl_swarm.sh
-```
+2. Установите Node.js и Yarn:
+   ```sh
+   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+   sudo apt install -y nodejs
+   yarn --version || npm install -g yarn
+   ```
 
-### Testnet participation
+3. Установите Docker:
+   ```sh
+   sudo apt install -y docker.io docker-compose
+   sudo systemctl enable docker --now
+   ```
 
-Please answer 'Y' (or just press enter), N is provided as an alternative flow but isn't currently maintained.
+4. Скачайте и настройте ноду:
+   ```sh
+   git clone https://github.com/Zdonuk/Gensyn_testnet.git && cd GensynFix && chmod +x run_rl_swarm.sh
+   ```
 
+5. Запустите ноду в screen:
+   ```sh
+   screen -S gensyn
+   ./run_rl_swarm.sh
+   ```
 
-### Login
+6. Откройте новую вкладку терминала (не закрывая старую) и настройте проброс порта:
+   ```sh
+   ssh -o StrictHostKeyChecking=no -R 80:localhost:3000 serveo.net
+   ```
 
-1. A browser window will pop open (you'll need to manually navigate to http://localhost:3000/ if you're on a VM).
-2. Click 'login'.
-3. Login with your preferred method.
+### Участие в тестовой сети
 
-### Huggingface
+На вопрос о тестовой сети отвечайте `Y` (или просто нажмите Enter). Ответ `N` предусмотрен, но этот режим не поддерживается.
 
-Optionally pair your HF account by using your HF token - [more here](https://huggingface.co/docs/hub/en/security-tokens).
+### Авторизация
 
-### Initial peering and training
+1. Откроется окно браузера (если вы используете виртуальную машину, вручную перейдите по адресу `http://localhost:3000/`).
+2. Нажмите "Login".
+3. Авторизуйтесь удобным способом (например, через Google).
 
-From this stage onward your device will be used to train a hyperscale machine learning system. You should see your peer register and vote on-chain [here](https://gensyn-testnet.explorer.alchemy.com/address/0x2fC68a233EF9E9509f034DD551FF90A79a0B8F82?tab=logs).
+### Hugging Face
 
+Для связки с аккаунтом Hugging Face используйте ваш HF-токен. Подробности: [Hugging Face Security Tokens](https://huggingface.co/docs/hub/en/security-tokens).
 
-## Identity management
+### Начальная регистрация и обучение
 
-### Introduction
+После авторизации ваше устройство начнёт обучение в гипермасштабной системе. Вы можете увидеть регистрацию и голосование вашего узла в блокчейне по адресу: [Gensyn Testnet Explorer](https://gensyn-testnet.explorer.alchemy.com/address/0x2fC68a233EF9E9509f034DD551FF90A79a0B8F82?tab=logs).
 
-On-chain identity is managed via an Alchemy modal sign-in screen. You need to supply an email address or login via a supported method (e.g. Google). This creates an EOA public/private key (which are stored by Alchemy). You will also receive local session keys in the `userApiKey`. Note that these aren't your EOA public/private keys. 
+## Управление идентичностью
 
-During the initial set-up process, you will also create a `swarm.pem` file which maintains the identity of your peer. This is then registered on chain using the EOA wallet hosted in Alchemy, triggered using your local api keys. This links the `email address` (and corresponding EOA in Alchemy) + `swarm.pem` forever and they are both effectively burned if one is lost.
+### Введение
 
-If you are running multiple nodes, and want to track progress on-chain (i.e. not just run RL Swarm itself and train a model), you must sign up again for each node - do not use the same `swarm.pem`, `userApiKey`, `userData.json`, `email address`, or copy the data between the nodes. If you do so, your progress won't be tracked on-chain. If you do any of these things, your node will work fine and train from the swarm however, but this will not be reflected on chain.
+Ончейн-идентичность создаётся через интерфейс авторизации Alchemy. Вам нужно указать email или войти через поддерживаемый способ (например, Google). Это создаёт EOA-ключ (хранится в Alchemy) и локальные сессионные ключи (`userApiKey`). Эти ключи не являются EOA-ключами.
 
-**Please note**: if you are using a fork of this repo, or a service organised by someone else (e.g. a 'one click deployment' provider) the identity management flow below is not guaranteed.
+При настройке создаётся файл `swarm.pem`, который определяет идентичность узла. Он регистрируется в блокчейне через EOA-кошелёк Alchemy с использованием локальных API-ключей. Email и `swarm.pem` связаны навсегда — потеря одного из них делает связку неработоспособной.
 
-### What this means
-In the following two scenarios, everything will work (i.e. you will have an on-chain identity linked with your RL Swarm peer training):
+Для нескольких узлов используйте разные email и `swarm.pem` для каждого. Копирование `swarm.pem`, `userApiKey`, `userData.json` или email между узлами приведёт к тому, что прогресс не будет отображаться в блокчейне, хотя узел будет работать и обучаться.
 
-- The very first time you run the node from scratch with a new email address. The smart account will be created fresh and linked with the swarm.pem that is also fresh.
-- If you run it again with a `swarm.pem` AND login the original `email address` used with that `swarm.pem`. Note: this will throw an error into the log on registration but will still be able to sign transactions.
+**Важно**: если вы используете форк репозитория или сторонний сервис (например, "развёртывание в один клик"), процесс управления идентичностью не гарантируется.
 
-In the following two scenarios, it will not work (i.e. you won't have an on-chain identity linked with your RL Swarm peer training):
+### Что это значит
 
-- If you lose your original `swarm.pem` and create another one but try to link it to a previously used `email address`.
-- If you keep your `swarm.pem` and try to link it to an `email address` distinct from the one with which it was first registered.
+**Работает** (прогресс будет отображаться в блокчейне):
+- Первый запуск узла с новым email и новым `swarm.pem`.
+- Повторный запуск с тем же `swarm.pem` и тем же email (может быть ошибка в логах, но транзакции будут подписываться).
 
-Therefore, you should do these actions in the following scenarios
+**Не работает** (прогресс не будет в блокчейне):
+- Потеря `swarm.pem` и попытка создать новый с уже использованным email.
+- Использование `swarm.pem` с другим email, отличным от исходного.
 
-- **Signed up with `email address`, generated `swarm.pem`, BUT lost `swarm.pem`**: run from scratch again with a new email address (you can use the `gmail +` notation for this).
-- **Signed up with `email address`, generated `swarm.pem`, kept `swarm.pem`** -> you can re-run a single node using this pair if you've still got them both but not multiple.
-- **You want to run multiple nodes at once**: run them all from scratch with different email addresses and generate new `swarm.pem`s for them all (i.e. do not share email address or `swarm.pem` between different running instances).
+**Рекомендации**:
+- **Потеряли `swarm.pem`, но есть email**: начните с нуля с новым email (используйте Gmail с `+`, например, `example+1@gmail.com`).
+- **Сохранили `swarm.pem` и email**: используйте их для повторного запуска одного узла (но не нескольких).
+- **Хотите запустить несколько узлов**: настройте каждый с новым email и новым `swarm.pem`.
 
-## Troubleshooting
+## Устранение неисправностей
 
-- **My peer 'skipped a round'**: this occurs when your device isn't fast enough to keep up with the pace of the swarm. For example, if you start training at round 100 and by the time you finish training the rest of the swarm reaches round 102, you will skip round 101 and go straight to 102. This is because your peer is more valuable if it is participating in the active round.
-- **My model doesn't seem to be training?**
+- **Узел пропустил раунд**: Это нормально, если ваше устройство не успевает за скоростью роя. Например, если вы начали на 100-м раунде, а рой уже на 102-м, ваш узел пропустит 101-й и перейдёт к 102-му.
+  
+- **Модель не обучается?**
+  - На слабых устройствах (например, MacBook) обучение может быть медленным. Проверьте через 20 минут.
 
-    - If you're using a consumer device (e.g. a MacBook), it is likely just running slowly - check back in 20 minutes.
+- **Проблемы с повторной авторизацией?**
+  - Нажмите "Logout" перед выходом из предыдущей сессии.
+  - Удалите `swarm.pem` из корневой директории: `sudo rm swarm.pem`.
 
-- **Logging in with a new account after previous login?**
-    
-    - Make sure you click 'Logout' on the login screen before you leave your previous session
-    - Make sure you delete `swarm.pem` from the root directory (try `sudo rm swarm.pem`). If you don't do this, and you previously registered with the peer-id stored in this file, it will disrupt the training process.
+- **Проблемы с экраном авторизации?**
+  - Обновите пакет `viem`:
+    - В `modal-login/package.json` укажите: `"viem": "2.25.0"`.
+    - Выполните: `cd /root/rl-swarm/modal-login/ && yarn upgrade && yarn add next@latest && yarn add viem@latest`.
 
-- **Issues with the Login screen**
+- **Много предупреждений?**
+  - Это нормально, часто из-за пакетных менеджеров. Игнорируйте предупреждение о Protobuf:
+    ```
+    WARNING: The candidate selected for download or install is a yanked version: 'protobuf' candidate...
+    ```
 
-    - **Upgrade viem**: some users report issues with the `viem` package. There are two fixes:
-        - in the `modal-login/package.json` update: `"viem": "2.25.0"`
-        - in the terminal `cd /root/rl-swarm/modal-login/ && yarn upgrade && yarn add next@latest && yarn add viem@latest`
+- **Проблемы на VM/VPS?**
+  - **Как открыть экран авторизации на VM?** Используйте проброс порта: `ssh -L 3000:localhost:3000`. Например: `gcloud compute ssh --zone "us-central1-a" [your-vm] --project [your-project] -- -L 3000:localhost:3000`. Некоторые VPS могут не поддерживать RL Swarm. Проверьте актуальную информацию в [Discord Gensyn](https://discord.gg/zAJbCTk9).
+  - **Разрывы соединения**: При разрыве туннеля могут быть ошибки OOM. Прервите скрипт (`Ctrl+C`) и перезапустите.
 
-- **I'm getting lots of warnings**
-    - This is expected behaviour and usually the output of the package managers or other dependencies. The most common is the below Protobuf warning - which can be ignored
-        ```
-        WARNING: The candidate selected for download or install is a yanked version: 'protobuf' candidate...
-        ```
+- **Проблемы с установкой?**
+  - Попробуйте: `npm install -g node@latest`.
 
-- **Issues on VMs/VPSs?**
+- **Ошибки OOM на MacBook?**
+  - Попробуйте: `export PYTORCH_MPS_HIGH_WATERMARK_RATIO=0.0`.
 
-    - **How do I access the login screen if I'm running in a VM?**: port forwarding. Add this SSH flag: `-L 3000:localhost:3000` when connecting to your VM. E.g. `gcloud compute ssh --zone "us-central1-a" [your-vm] --project [your-project] -- -L 3000:localhost:3000`. Note, some VPSs may not work with `rl-swarm`. Check the Gensyn [discord](https://discord.gg/zAJbCTk9) for up-to-date information on this.
-    
-    - **Disconnection/general issues**: If you are tunneling to a VM and suffer a broken pipe, you will likely encounter OOM or unexepected behaviour the first time you relaunch the script. If you `control + c` and kill the script it should spin down all background processes. Restart the script and everything should work normally.
+- **Работа на Windows?**
+  - Установите WSL и Linux: [инструкция](https://learn.microsoft.com/en-us/windows/wsl/install). Требуется отладка.
 
-- **Issues with npm/general installation?**
+- **Перенос узла с сохранением имени/идентификатора?**
+  - Сохраните `swarm.pem` и перенесите его на новое устройство.
 
-    - Try  `npm install -g node@latest`
+- **Несколько GPU на одном устройстве?**
+  - Изолируйте GPU, установите репозиторий для каждого, настройте разные порты.
 
-- **OOM errors on MacBook?**
-    - Try this (experimental) fix to increase memory:
-        ```
-        export PYTORCH_MPS_HIGH_WATERMARK_RATIO=0.0
-        ```
-- **I have a Windows machine, can I still train a model on the swarm?**: Yes - but this is not very well tested and may require you to do some debugging to get it set up properly. Install WSL and Linux on your Windows machine using the following instructions: https://learn.microsoft.com/en-us/windows/wsl/install
+- **Раунд/стадия отстаёт?**
+  - Это нормально из-за разной скорости устройств. Узел перейдёт к текущему раунду после завершения текущего.
 
-- **I want to move my to a different machine and/or restart with a fresh build of the repo, but I want my animal name/peer id to persist.**: To achieve this simply backup the `swarm.pem` file on your current machine and then put it in the corresponding location on your new machine/build of the repo.
+- **Использование другой модели?**
+  - Измените `./hivemind_exp/configs/<directory_relevant_to_your_device>/grpo-qwen-2.5-0.5b-deepseek-r1.yaml`, указав нужную модель. Поддерживаются модели, совместимые с `AutoModelForCausalLM` от Hugging Face, но протестированы только Qwen 2.5.
 
-- **I have multiple GPUs on one machine, can I run multiple peers?**: Yes - but you'll need to manually change things. You'll need to isolate each GPU, install this repo for each GPU, and expose each peer under a different port to pass the modal onboard.
+- **RuntimeError на CPU, обучение зависло?**
+  - Убедитесь, что обучение действительно остановилось (подождите дольше одного цикла).
+  - Попробуйте:
+    - `export PYTORCH_MPS_HIGH_WATERMARK_RATIO=0.0 && ./run_rl_swarm.sh`.
+    - В конфиге добавьте: `max_grad_norm=0.5`.
+    - Используйте float32 вместо bfloat16 в конфиге.
 
-- **My round/stage is behind the smart contract/other peers?**: This is expected behaviour given the different speeds of machines in the network. Once your machine completes it's current round, it will move to the the current round.
-
-- **I want to use a bigger and/or different model in the RL swarm, can I do that?**: Yes - but we only recommend doing so if you are comfortable manually changing files and appropriately configuring the model(s) you wish to run for your device(s). You'll simply need to edit the config file in `./hivemind_exp/configs/<directory_relevant_to_your_device>/grpo-qwen-2.5-0.5b-deepseek-r1.yaml` to reflect the model_name_or_path and training arguments corresponding to what you want in the swarm. Note that, although any pre-trained LLM compatible with Hugging Face's `AutoModelForCausalLM` class should work in theory, we have only tested with a handful of Qwen 2.5 instruction-tuned models.
-
-- **I am running a model in the swarm on my CPU, have received a python `RuntimeError`, and my training progress seems to have stopped.**: There are several possible causes for this, but before trying anything please wait long enough to be sure your training actually is frozen and not just slow (e.g., wait longer than a single training iteration has previously taken on your machine). If you're sure training is actually frozen, then some things to try are:
-    - Set this (experimental) fix: `export PYTORCH_MPS_HIGH_WATERMARK_RATIO=0.0 && ./run_rl_swarm.sh`
-    - In the config for your device (`./hivemind_exp/configs/<directory_relevant_to_your_device>/grpo-qwen-2.5-0.5b-deepseek-r1.yaml`) add the following training argument: `max_grad_norm=0.5`
-    - Use floating point 32 instead of bfloat16 to train your model. This can be changed in the config for your device, i.e. `./hivemind_exp/configs/<directory_relevant_to_your_device>/grpo-qwen-2.5-0.5b-deepseek-r1.yaml`.
-
-- **How can I optimsie `rl-swarm` for my device**? open the `hivemind_exp/configs/gpu/grpo-qwen-2.5-0.5b-deepseek-r1.yaml`. Note that this is for the gpu and not cpu configuration. You can then edit parameters that optimsie the training run. For example, try adjusting the `vllm_gpu_memory_utilization`. Note that optimal settings will vary by device.
+- **Оптимизация RL Swarm?**
+  - Откройте `hivemind_exp/configs/gpu/grpo-qwen-2.5-0.5b-deepseek-r1.yaml` и настройте параметры, например, `vllm_gpu_memory_utilization`. Оптимальные значения зависят от устройства.
 
 ## Swarm UI
-To launch the Swarm UI, run `docker-compose up --build` and open `0.0.0.0:8080` in your browser.
 
-See the [web/README](./web/README.md) for more details.
+Для запуска интерфейса:
+```sh
+docker-compose up --build
+```
+Откройте в браузере: `0.0.0.0:8080`.
+
+Подробности: [web/README](./web/README.md).
