@@ -57,7 +57,7 @@ RL Swarm полностью открыта и не требует разреше
 
 4. Скачайте и настройте ноду:
    ```sh
-   git clone https://github.com/Zdonuk/Gensyn_testnet.git && cd GensynFix && chmod +x run_rl_swarm.sh
+   git clone https://github.com/Zdonuk/Gensyn_testnet.git && cd Gensyn_testnet && chmod +x run_rl_swarm.sh
    ```
 
 5. Запустите ноду в screen:
